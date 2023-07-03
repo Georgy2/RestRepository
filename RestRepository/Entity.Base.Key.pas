@@ -13,6 +13,8 @@ type
   //could be used as key in dictionary
   TComplexKeyData = record
     Values : TArray<TValue>;
+
+    constructor Create(const AValues : TArray<TValue>);
   end;
 
   //comparer for the class from above
@@ -54,6 +56,11 @@ uses
   Utils.RttiContext,
   System.TypInfo,
   System.Hash;
+
+constructor TComplexKeyData.Create(const AValues : TArray<TValue>);
+begin
+  self.Values := AValues;
+end;
 
 constructor TComplexKeyDataComparer.Create(const AFields : TArray<TFieldData>);
 begin

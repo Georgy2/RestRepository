@@ -13,6 +13,9 @@ type
 
   TVersionData = record
     Value : TValue;
+
+    constructor Create(const AValue : TValue);
+    class operator Implicit(const AValue : TValue) : TVersionData;
   end;
 
   TVersionDataComparer = class (TInterfacedObject, IComparer<TVersionData>)
@@ -47,6 +50,15 @@ const
 implementation
 uses
   Utils.RttiContext;
+
+constructor TVersionData.Create(const AValue : TValue);
+begin
+  self.Value := AValue;
+end;
+class operator TVersionData.Implicit(const AValue : TValue) : TVersionData;
+begin
+  result.Value := AValue;
+end;
 
 constructor TVersionDataComparer.Create(const AField : TFieldData);
 begin

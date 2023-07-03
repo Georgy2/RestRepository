@@ -14,7 +14,8 @@ type
     procedure Clone();
     [Test]
     procedure KeysCombinations();
-
+    [Test]
+    procedure VersionCombinations();
     //more tests in Entity.Base.Key.Test
   end;
 
@@ -89,6 +90,17 @@ type TSeveralKeyBad = class (TEntity<TSeveralKeyBad>)
   FString : String;
 end;
 
+type TVersionOk = class (TEntity<TVersionOk>)
+  [Version] FInt : Integer;
+  FInt64 : Int64;
+  FString : String;
+end;
+type TSeveralVersionBad = class (TEntity<TSeveralVersionBad>)
+  [Version] FInt : Integer;
+  [Version] FInt64 : Int64;
+  [Version] FString : String;
+end;
+
 procedure TBaseEntityTest.KeysCombinations();
 begin
   Assert.WillNotRaiseAny(procedure begin
@@ -102,10 +114,21 @@ begin
                         end);
 
   ///  if we try to instantiate some bad classes, an exception will be thrown.
-  ///  but we cant catch them because thew occur during initialization
+  ///  but we cant catch them because they occur during initialization
   ///
   //var Dummy : Unique<TKeyAndComplexKeyBad> := TKeyAndComplexKeyBad.Create();
   //var Dummy : Unique<TSeveralKeyBad> := TSeveralKeyBad.Create();
+end;
+procedure TBaseEntityTest.VersionCombinations();
+begin
+  Assert.WillNotRaiseAny(procedure begin
+                          var Dummy : Unique<TVersionOk> := TVersionOk.Create();
+                        end);
+
+  ///  if we try to instantiate some bad classes, an exception will be thrown.
+  ///  but we cant catch them because they occur during initialization
+  ///
+  //var Dummy : Unique<TSeveralVersionBad> := TSeveralVersionBad.Create();
 end;
 
 initialization

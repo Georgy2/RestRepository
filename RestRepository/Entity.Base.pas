@@ -3,6 +3,7 @@ unit Entity.Base;
 interface
 uses
   Entity.Base.Key,
+  Entity.Base.Version,
   SysUtils,
   Rtti;
 
@@ -13,19 +14,35 @@ type
   public type
     KeyProducerType = TComplexKeyProducer<T>;
     KeyType = KeyProducerType.KeyType;
+    VersionProducerType = TVersionProducer<T>;
+    VersionType = TVersionProducer<T>.VersionType;
   private
     class var FStoredTypeCtor : TRttiMethod;
     class var FStoredType : TRttiType;
     class var FKeyProducer : IKeyProducer<T, KeyType>;
+    class var FVersionProducer : IVersionProducer<T, VersionType>;
 
     class procedure ScanAttributes();
   public
     class constructor Create();
 
+    ///  <summary>
+    ///  Create copy of self
+    ///  </summary>
+    ///  <returns>
+    ///  new copy
+    ///  </returns>
     function Clone() : T; virtual;
+    ///  <summary>
+    ///  set all from the source
+    ///  </summary>
+    ///  <param name = 'AOriginal'>
+    ///  source
+    ///  </param>
     procedure From(const AOriginal : T);
 
     class property KeyProducer : IKeyProducer<T, KeyType> read FKeyProducer;
+    class property VersionProducer : IVersionProducer<T, VersionType> read FVersionProducer;
   end;
 
   //attributes
@@ -33,13 +50,17 @@ type
   KeyAttribute = class (TCustomAttribute);
   //several is allowed
   ComplexKeyAttribute = class (TCustomAttribute);
+  //version
+  VersionAttribute = class (TCustomAttribute);
 
   function FindDefaultConstructor(AType : TRttiType) : TRttiMethod;
   function ExtactFieldNames(const AFields : TArray<TRttiField>) : TArray<String>;
 const
   ERR_KEY_AND_COMPLEXKEY_TOGETHER = 'Using <Key> and <ComplexKey> both together is not allowed';
   ERR_SEVERAL_KEY_ATTRIBS = 'Several <Key> attributes is not allowed, use <ComplexKey> instead';
+  ERR_SEVERAL_VERSION_ATTRIBS = 'Several <Version> attributes is not allowed';
   ERR_KEY_CTOR = 'Error creating key: ';
+  ERR_VERSION_CTOR = 'Error creating version: ';
 implementation
 uses
   Utils.RttiContext;
@@ -63,6 +84,7 @@ class procedure TEntity<T>.ScanAttributes();
 begin
   var SingleKeyFields : TArray<TRttiField>;
   var ComplexKeyFields : TArray<TRttiField>;
+  var VersionFields : TArray<TRttiField>;
 
   for var Field in FStoredType.GetFields() do
   begin
@@ -72,6 +94,8 @@ begin
         SingleKeyFields := SingleKeyFields + [Field]
       else if Attrib is ComplexKeyAttribute then
         ComplexKeyFields := ComplexKeyFields + [Field]
+      else if Attrib is VersionAttribute then
+        VersionFields := VersionFields + [Field]
       else
         ;
     end;
@@ -84,6 +108,9 @@ begin
   //more than one single
   if (Length(SingleKeyFields) > 1) then
     raise EntityException.Create(ERR_SEVERAL_KEY_ATTRIBS);
+  //more than one version field
+  if (Length(VersionFields) > 1) then
+    raise EntityException.Create(ERR_SEVERAL_VERSION_ATTRIBS);
 
   //set
   try
@@ -96,6 +123,18 @@ begin
   except
     on E : KeyException do
       raise EntityException.Create(ERR_KEY_CTOR + E.Message);
+    else
+      raise;
+  end;
+
+  try
+    if (Length(VersionFields) > 1) then
+      FVersionProducer := VersionProducerType.Create(VersionFields[0].Name)
+    else
+      FVersionProducer := nil;
+  except
+    on E : VersionException do
+      raise EntityException.Create(ERR_VERSION_CTOR + E.Message);
     else
       raise;
   end;
