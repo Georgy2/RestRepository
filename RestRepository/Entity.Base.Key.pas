@@ -2,23 +2,13 @@ unit Entity.Base.Key;
 
 interface
 uses
+  Utils.Rtti,
   SysUtils,
-  Generics.Collections,
   Generics.Defaults,
   Rtti;
 
 type
   KeyException = class (Exception);
-
-  TFieldData = record
-  private
-    FField : TRttiField;
-    FComparer : pointer;
-  public
-    constructor Create(AField : TRttiField);
-    function Equals(const Left, Right : TValue) : boolean;
-    function Hash(const AValue : TValue) : integer;
-  end;
 
   //could be used as key in dictionary
   TComplexKeyData = record
@@ -48,95 +38,22 @@ type
   public type
     KeyType = TComplexKeyData;
   public
-    constructor Create(AFieldNames : TArray<String>);
-    function GetKey(const AEntity : T) : TComplexKeyData;
-    function GetComparer() : IEqualityComparer<TComplexKeyData>;
+    constructor Create(const AFieldNames : TArray<String>);
+    function GetKey(const AEntity : T) : KeyType;
+    function GetComparer() : IEqualityComparer<KeyType>;
   end;
 
 const
   ERR_TYPE_NOT_SUPPORTED = 'Type not supported for key field: ';
   ERR_ARRAY_SIZES_NOT_MATCH = 'Array sizes do not match';
   ERR_FIELD_NOT_FOUND = 'Field not found: ';
+  ERR_FIELD_CTOR_ERROR = 'Field error: ';
 
 implementation
 uses
   Utils.RttiContext,
   System.TypInfo,
   System.Hash;
-
-constructor TFieldData.Create(AField : TRttiField);
-begin
-  FField := AField;
-
-  if FField.FieldType.IsOrdinal then
-  begin
-    FComparer := TEqualityComparer<integer>.Default();
-  end
-  else if FField.FieldType.Handle = TypeInfo(Int64) then
-  begin
-    FComparer := TEqualityComparer<Int64>.Default();
-  end
-  else if FField.FieldType is TRttiFloatType then
-  begin
-    FComparer := TEqualityComparer<Extended>.Default();
-  end
-  else if FField.FieldType.Handle = TypeInfo(String) then
-  begin
-    FComparer := TEqualityComparer<String>.Default();
-  end
-  else
-    raise KeyException.Create(ERR_TYPE_NOT_SUPPORTED + FField.Name);
-end;
-function TFieldData.Equals(const Left, Right : TValue) : boolean;
-begin
-  if FField.FieldType.IsOrdinal then
-  begin
-    var Comparer := IEqualityComparer<integer>(FComparer);
-    result := Comparer.Equals(Left.AsOrdinal, Right.AsOrdinal);
-  end
-  else if FField.FieldType.Handle = TypeInfo(Int64) then
-  begin
-    var Comparer := IEqualityComparer<Int64>(FComparer);
-    result := Comparer.Equals(Left.AsInt64, Right.AsInt64);
-  end
-  else if FField.FieldType is TRttiFloatType then
-  begin
-    var Comparer := IEqualityComparer<Extended>(FComparer);
-    result := Comparer.Equals(Left.AsExtended, Right.AsExtended);
-  end
-  else if FField.FieldType.Handle = TypeInfo(String) then
-  begin
-    var Comparer := IEqualityComparer<String>(FComparer);
-    result := Comparer.Equals(Left.AsString, Right.AsString);
-  end
-  else
-    raise KeyException.Create('Unreachable: look at TFieldData.Create');
-end;
-function TFieldData.Hash(const AValue : TValue) : integer;
-begin
-  if FField.FieldType.IsOrdinal then
-  begin
-    var Comparer := IEqualityComparer<integer>(FComparer);
-    result := Comparer.GetHashCode(AValue.AsOrdinal);
-  end
-  else if FField.FieldType.Handle = TypeInfo(Int64) then
-  begin
-    var Comparer := IEqualityComparer<Int64>(FComparer);
-    result := Comparer.GetHashCode(AValue.AsInt64);
-  end
-  else if FField.FieldType is TRttiFloatType then
-  begin
-    var Comparer := IEqualityComparer<Extended>(FComparer);
-    result := Comparer.GetHashCode(AValue.AsExtended);
-  end
-  else if FField.FieldType.Handle = TypeInfo(String) then
-  begin
-    var Comparer := IEqualityComparer<String>(FComparer);
-    result := Comparer.GetHashCode(AValue.AsString);
-  end
-  else
-    raise KeyException.Create('Unreachable: look at TFieldData.Create');
-end;
 
 constructor TComplexKeyDataComparer.Create(const AFields : TArray<TFieldData>);
 begin
@@ -168,7 +85,7 @@ begin
   result := Integer(Hash mod MaxInt);
 end;
 
-constructor TComplexKeyProducer<T>.Create(AFieldNames : TArray<String>);
+constructor TComplexKeyProducer<T>.Create(const AFieldNames : TArray<String>);
 begin
   inherited Create();
 
@@ -181,10 +98,17 @@ begin
     if not assigned(Field) then
       raise KeyException.Create(ERR_FIELD_NOT_FOUND + AFieldNames[I]);
 
-    FFields[I] := TFieldData.Create(Field);
+    try
+      FFields[I] := TFieldData.Create(Field);
+    except
+      on E : RttiException do
+        raise KeyException.Create(ERR_FIELD_CTOR_ERROR + E.Message);
+      else
+        raise;
+    end;
   end;
 end;
-function TComplexKeyProducer<T>.GetKey(const AEntity : T) : TComplexKeyData;
+function TComplexKeyProducer<T>.GetKey(const AEntity : T) : KeyType;
 var
   PData : pointer;
 begin
@@ -195,9 +119,9 @@ begin
 
   SetLength(result.Values, Length(self.FFields));
   for var I := 0 to Length(FFields) - 1 do
-    result.Values[I] := FFields[I].FField.GetValue(PData);
+    result.Values[I] := FFields[I].Field.GetValue(PData);
 end;
-function TComplexKeyProducer<T>.GetComparer() : IEqualityComparer<TComplexKeyData>;
+function TComplexKeyProducer<T>.GetComparer() : IEqualityComparer<KeyType>;
 begin
   result := TComplexKeyDataComparer.Create(FFields);
 end;

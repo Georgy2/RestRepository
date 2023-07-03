@@ -112,6 +112,9 @@
         <DCCReference Include="Entity.Base.Key.Test.pas"/>
         <DCCReference Include="..\RestRepository\Entity.Base.Key.pas"/>
         <DCCReference Include="Entity.Base.Test.pas"/>
+        <DCCReference Include="..\RestRepository\Entity.Base.Version.pas"/>
+        <DCCReference Include="..\RestRepository\Utils.Rtti.pas"/>
+        <DCCReference Include="Entity.Base.Version.Test.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
@@ -957,9 +960,9 @@
                 <ProjectRoot Platform="OSX32" Name="$(PROJECTNAME).app"/>
                 <ProjectRoot Platform="OSX64" Name="$(PROJECTNAME).app"/>
                 <ProjectRoot Platform="Win32" Name="$(PROJECTNAME)"/>
-                <ProjectRoot Platform="Android64" Name="$(PROJECTNAME)"/>
-                <ProjectRoot Platform="Android" Name="$(PROJECTNAME)"/>
                 <ProjectRoot Platform="OSXARM64" Name="$(PROJECTNAME).app"/>
+                <ProjectRoot Platform="Android" Name="$(PROJECTNAME)"/>
+                <ProjectRoot Platform="Android64" Name="$(PROJECTNAME)"/>
                 <ProjectRoot Platform="Win64" Name="$(PROJECTNAME)"/>
                 <ProjectRoot Platform="Linux64" Name="$(PROJECTNAME)"/>
                 <ProjectRoot Platform="iOSDevice32" Name="$(PROJECTNAME).app"/>

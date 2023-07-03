@@ -19,7 +19,10 @@ uses
   Utils.RttiContext in '..\RestRepository\Utils.RttiContext.pas',
   Entity.Base.Key.Test in 'Entity.Base.Key.Test.pas',
   Entity.Base.Key in '..\RestRepository\Entity.Base.Key.pas',
-  Entity.Base.Test in 'Entity.Base.Test.pas';
+  Entity.Base.Test in 'Entity.Base.Test.pas',
+  Entity.Base.Version in '..\RestRepository\Entity.Base.Version.pas',
+  Utils.Rtti in '..\RestRepository\Utils.Rtti.pas',
+  Entity.Base.Version.Test in 'Entity.Base.Version.Test.pas';
 
 {$IFNDEF TESTINSIGHT}
 var

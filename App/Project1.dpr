@@ -3,7 +3,8 @@ program Project1;
 uses
   Vcl.Forms,
   Unit1 in 'Unit1.pas' {Form1},
-  Memory in '..\RestRepository\Memory.pas';
+  Memory in '..\RestRepository\Memory.pas',
+  Entity.Base.Version in '..\RestRepository\Entity.Base.Version.pas';
 
 {$R *.res}
 
