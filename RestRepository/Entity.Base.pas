@@ -53,7 +53,6 @@ type
   //version
   VersionAttribute = class (TCustomAttribute);
 
-  function FindDefaultConstructor(AType : TRttiType) : TRttiMethod;
   function ExtactFieldNames(const AFields : TArray<TRttiField>) : TArray<String>;
 const
   ERR_KEY_AND_COMPLEXKEY_TOGETHER = 'Using <Key> and <ComplexKey> both together is not allowed';
@@ -63,17 +62,9 @@ const
   ERR_VERSION_CTOR = 'Error creating version: ';
 implementation
 uses
+  Utils.Rtti,
   Utils.RttiContext;
 
-function FindDefaultConstructor(AType : TRttiType) : TRttiMethod;
-begin
-  for var Method in AType.GetMethods() do
-  begin
-    if Method.IsConstructor and (Length(Method.GetParameters) = 0) then
-      Exit(Method);
-  end;
-  Exit(nil);
-end;
 function ExtactFieldNames(const AFields : TArray<TRttiField>) : TArray<String>;
 begin
   for var Field in AFields do
@@ -128,7 +119,7 @@ begin
   end;
 
   try
-    if (Length(VersionFields) > 1) then
+    if (Length(VersionFields) > 0) then
       FVersionProducer := VersionProducerType.Create(VersionFields[0].Name)
     else
       FVersionProducer := nil;

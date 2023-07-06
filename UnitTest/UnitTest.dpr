@@ -22,7 +22,13 @@ uses
   Entity.Base.Test in 'Entity.Base.Test.pas',
   Entity.Base.Version in '..\RestRepository\Entity.Base.Version.pas',
   Utils.Rtti in '..\RestRepository\Utils.Rtti.pas',
-  Entity.Base.Version.Test in 'Entity.Base.Version.Test.pas';
+  Entity.Base.Version.Test in 'Entity.Base.Version.Test.pas',
+  Repository.Rest.Operations in '..\RestRepository\Repository.Rest.Operations.pas',
+  Repository.Rest.Errors in '..\RestRepository\Repository.Rest.Errors.pas',
+  Repository.Rest.ResponseExtractor in '..\RestRepository\Repository.Rest.ResponseExtractor.pas',
+  Repository.Rest.ResponseExtractor.Test in 'Repository.Rest.ResponseExtractor.Test.pas',
+  Repository.Rest in '..\RestRepository\Repository.Rest.pas',
+  Repository.Base in '..\RestRepository\Repository.Base.pas';
 
 {$IFNDEF TESTINSIGHT}
 var

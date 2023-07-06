@@ -143,6 +143,7 @@ begin
   begin
     Assert.WillRaise(procedure begin
                       var ComplexKey := TComplexKeyProducer<TSomeEntity>.Create([FieldName]);
+                      ComplexKey.Free();
                     end,
                     KeyException);
   end;

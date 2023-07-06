@@ -22,12 +22,24 @@ type
     property Field : TRttiField read FField;
   end;
 
+  function FindDefaultConstructor(AType : TRttiType) : TRttiMethod;
 const
   ERR_TYPE_NOT_SUPPORTED = 'Type not supported: ';
 
 implementation
 uses
+  TypInfo,
   Generics.Defaults;
+
+function FindDefaultConstructor(AType : TRttiType) : TRttiMethod;
+begin
+  for var Method in AType.GetMethods() do
+  begin
+    if Method.IsConstructor and (Length(Method.GetParameters) = 0) then
+      Exit(Method);
+  end;
+  Exit(nil);
+end;
 
 constructor TFieldData.Create(AField : TRttiField);
 begin
