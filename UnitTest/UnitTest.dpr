@@ -28,7 +28,8 @@ uses
   Repository.Rest.ResponseExtractor in '..\RestRepository\Repository.Rest.ResponseExtractor.pas',
   Repository.Rest.ResponseExtractor.Test in 'Repository.Rest.ResponseExtractor.Test.pas',
   Repository.Rest in '..\RestRepository\Repository.Rest.pas',
-  Repository.Base in '..\RestRepository\Repository.Base.pas';
+  Repository.Base in '..\RestRepository\Repository.Base.pas',
+  Repository.Rest.Test in 'Repository.Rest.Test.pas';
 
 {$IFNDEF TESTINSIGHT}
 var

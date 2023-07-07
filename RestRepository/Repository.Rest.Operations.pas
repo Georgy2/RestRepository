@@ -41,6 +41,10 @@ type
   public
     constructor Create(const APath: string; const AUriParamNames : String = '');
   end;
+  DeleteAttribute = class (RestOperationAttribute)
+  public
+    constructor Create(const APath: string; const AUriParamNames : String = '');
+  end;
 
   //worker
   TRestInvoker = class
@@ -79,6 +83,12 @@ uses
   SysUtils,
   StrUtils;
 
+function CombineUri(const ABegin : String; const AEnd : String) : String;
+const Slash : Char = '/';
+begin
+  result := ABegin.TrimRight([Slash]) + Slash + AEnd.TrimLeft([Slash]);
+end;
+
 constructor RestOperationAttribute.Create(const APath: string; const AMethod: TRestRequestMethod; const AUriParamNames : String);
 begin
   FPath := APath;
@@ -88,7 +98,7 @@ end;
 function RestOperationAttribute.Invoke(const AHost : String; const ABaseApiURL: string; AAuthenticator : TCustomAuthenticator;
                   APayload : TObject; const AUriParamValues : TArray<TValue>; const AUriSegmentValue : TValue; AThreadPool : TThreadPool) : IFuture<Unique<TRESTResponse>>;
 begin
-  result := TRestInvoker.Invoke(AHost + ABaseApiURL, AAuthenticator, Path, Method, UriParamNames, APayload, AUriParamValues, AUriSegmentValue, AThreadPool);
+  result := TRestInvoker.Invoke(CombineUri(AHost, ABaseApiURL), AAuthenticator, Path, Method, UriParamNames, APayload, AUriParamValues, AUriSegmentValue, AThreadPool);
 end;
 
 constructor GetAttribute.Create(const APath: string; const AUriParamNames : String);
@@ -103,6 +113,10 @@ constructor PutAttribute.Create(const APath: string; const AUriParamNames : Stri
 begin
   inherited Create(APath, TRestRequestMethod.rmPUT, AUriParamNames);
 end;
+constructor DeleteAttribute.Create(const APath: string; const AUriParamNames : String);
+begin
+  inherited Create(APath, TRestRequestMethod.rmDELETE, AUriParamNames);
+end;
 
 class procedure TRestInvoker.SetUriParams(ARestClient : TRestClient; const AUriParamNames : TArray<String>; const AUriParamValues : TArray<TValue>);
 begin
@@ -111,10 +125,13 @@ begin
 
   for var i := 0 to Length(AUriParamNames) - 1 do
   begin
-    var ValueAsString : TValue;
-    if not AUriParamValues[i].TryCast(TypeInfo(String), ValueAsString) then
+    var ValueAsString : String;
+    try
+      ValueAsString := AUriParamValues[i].ToString();
+    except
       raise ERest.Parameters.Create(ERR_PARAMETER_NOT_STRINGABLE + IntToStr(i));
-    ARestClient.AddParameter(AUriParamNames[i], ValueAsString.AsString, TRESTRequestParameterKind.pkQUERY);  //pkURLSEGMENT
+    end;
+    ARestClient.AddParameter(AUriParamNames[i], ValueAsString, TRESTRequestParameterKind.pkQUERY);  //pkURLSEGMENT
   end;
 end;
 class function TRestInvoker.AddUriSegment(const AUri : String; const AValue : TValue) : String;
@@ -123,10 +140,11 @@ begin
     result := AUri
   else
   begin
-    var ValueAsString : TValue;
-    if not AValue.TryCast(TypeInfo(String), ValueAsString) then
+    try
+      result := CombineUri(AUri, AValue.ToString());
+    except
       raise ERest.Parameters.Create(ERR_SEGMENT_NOT_STRINGABLE);
-    result := AUri + '/' + ValueAsString.AsString;
+    end;
   end;
 end;
 
@@ -137,41 +155,51 @@ begin
 
   //prepare (using parameters) inside sender thread...
   var FullPath := AddUriSegment(AHostAndBaseApiURL, AUriSegmentValue);
-  var RestClient : Unique<TRESTClient> := TRESTClient.Create(FullPath);
-  RestClient.Get().Authenticator := AAuthenticator;
-  RestClient.Get().Accept := '*/*';
-  SetUriParams(RestClient.Get(), AUriParamNames, AUriParamValues);
+  var RestClient := TRESTClient.Create(FullPath);
+  RestClient.Authenticator := AAuthenticator;
+  RestClient.Accept := '*/*';
+  SetUriParams(RestClient, AUriParamNames, AUriParamValues);
   //
-  var Response : Unique<TRESTResponse> := TRESTResponse.Create(nil);
+  var Response := TRESTResponse.Create(nil);
   //
-  var Request : Unique<TRestRequest> := TRestRequest.Create(RestClient.Get());
-  Request.Get().SynchronizedEvents := false; //!
-  Request.Get().Response := Response.Get();
-  Request.Get().Method := AMethod;
-  Request.Get().Resource := APath;
+  var Request  := TRestRequest.Create(RestClient);
+  Request.SynchronizedEvents := false; //!
+  Request.Response := Response;
+  Request.Method := AMethod;
+  Request.Resource := APath;
   //
   if APayload <> nil then
   begin
-    Request.Get().AddBody(TJson.ObjectToJsonObject(APayload), ooREST);
+    Request.AddBody(TJson.ObjectToJsonObject(APayload), ooREST);
   end;
   //...and do not use input parameters below
 
+  //closures does not call smart record's .assign!
   var TaskFunc : TFunc<Unique<TRESTResponse>> := function() : Unique<TRESTResponse>
   begin
     try
-      Request.Get().Execute();
-      if Response.Get().StatusCode <> 200 then
+    try
+      Request.Execute();
+      if Response.StatusCode <> 200 then
       begin
-        var SpringErrMsg := TRestResponseExtractor<TSpringRestErrorMessage>.ResponseAsObjectOnErrorNil(Response.Get());
-        raise ERest.UnwantedResult.Create(Response.Get().StatusCode, Response.Get().Content, SpringErrMsg);
+        var SpringErrMsg := TRestResponseExtractor<TSpringRestErrorMessage>.ResponseAsObjectOnErrorNil(Response);
+        raise ERest.UnwantedResult.Create(Response.StatusCode, Response.Content, SpringErrMsg);
       end;
     except
       on ex : ERESTException do
-        raise ERest.Framework.Create(ex.Message)
+      begin
+        Response.Free();
+        raise ERest.Framework.Create(ex.Message);
+      end
       else
+      begin
+        Response.Free();
         raise;
+      end;
     end;
-
+    finally
+      RestClient.Free();
+    end;
     result := Response;
   end;
 

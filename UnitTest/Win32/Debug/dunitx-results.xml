@@ -1,27 +1,27 @@
 ﻿<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
-<test-results name="F:\work\Geo_Progs_10\RestRepository\UnitTest\Win32\Debug\UnitTest.exe" total="14" errors="0" failures="0" ignored="0" inconclusive="0" not-run="0" skipped="0" invalid="0" date="2023-07-05" time="3.492">
+<test-results name="F:\work\Geo_Progs_10\RestRepository\UnitTest\Win32\Debug\UnitTest.exe" total="17" errors="0" failures="0" ignored="0" inconclusive="0" not-run="0" skipped="0" invalid="0" date="2023-07-07" time="0.053">
   <culture-info current-culture="en" current-uiculture="en" />
-  <test-suite type="Assembly" name="UnitTest.exe" executed="true" result="Success" success="True" time="3.492" asserts="0">
+  <test-suite type="Assembly" name="UnitTest.exe" executed="true" result="Success" success="True" time="0.053" asserts="0">
     <results>
-        <test-suite type="Namespace" name="Entity" executed="true" result="Success" success="True" time="6.239" asserts="0" >
+        <test-suite type="Namespace" name="Entity" executed="true" result="Success" success="True" time="0.153" asserts="0" >
           <results>
-              <test-suite type="Namespace" name="Base" executed="true" result="Success" success="True" time="6.239" asserts="0" >
+              <test-suite type="Namespace" name="Base" executed="true" result="Success" success="True" time="0.153" asserts="0" >
                 <results>
-                    <test-suite type="Fixture" name="TComplexKeyTest" executed="True" result="Success" success="True" time="3.492" >
+                    <test-suite type="Fixture" name="TComplexKeyTest" executed="True" result="Success" success="True" time="0.052" >
                       <results>
                         <test-case name="SingleElementKeys" executed="True" result="Success" success="True" time="0.000" asserts="0" />
                         <test-case name="MultiElementKeys" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-                        <test-case name="InvalidKey" executed="True" result="Success" success="True" time="2.121" asserts="0" />
+                        <test-case name="InvalidKey" executed="True" result="Success" success="True" time="0.000" asserts="0" />
                       </results>
                     </test-suite>
-                    <test-suite type="Fixture" name="TBaseEntityTest" executed="True" result="Success" success="True" time="1.374" >
+                    <test-suite type="Fixture" name="TBaseEntityTest" executed="True" result="Success" success="True" time="0.051" >
                       <results>
                         <test-case name="Clone" executed="True" result="Success" success="True" time="0.000" asserts="0" />
                         <test-case name="KeysCombinations" executed="True" result="Success" success="True" time="0.000" asserts="0" />
                         <test-case name="VersionCombinations" executed="True" result="Success" success="True" time="0.000" asserts="0" />
                       </results>
                     </test-suite>
-                    <test-suite type="Fixture" name="TVersionTest" executed="True" result="Success" success="True" time="1.373" >
+                    <test-suite type="Fixture" name="TVersionTest" executed="True" result="Success" success="True" time="0.050" >
                       <results>
                         <test-case name="Compare" executed="True" result="Success" success="True" time="0.000" asserts="0" />
                       </results>
@@ -30,25 +30,36 @@
               </test-suite>
           </results>
         </test-suite>
-        <test-suite type="Namespace" name="Memory" executed="true" result="Success" success="True" time="1.372" asserts="0" >
+        <test-suite type="Namespace" name="Repository" executed="true" result="Success" success="True" time="0.052" asserts="0" >
           <results>
-              <test-suite type="Fixture" name="TUniqueTest" executed="True" result="Success" success="True" time="1.372" >
+              <test-suite type="Namespace" name="Rest" executed="true" result="Success" success="True" time="0.052" asserts="0" >
+                <results>
+                    <test-suite type="Fixture" name="TRestRepositoryTest" executed="True" result="Success" success="True" time="0.049" >
+                      <results>
+                        <test-case name="SimpleMethods" executed="True" result="Success" success="True" time="0.015" asserts="0" />
+                        <test-case name="WithoutDefaultMethods" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="SpecializedMethods" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                      </results>
+                    </test-suite>
+                    <test-suite type="Fixture" name="TResponseExtractorTest" executed="True" result="Success" success="True" time="0.003" >
+                      <results>
+                        <test-case name="ExtractGoodObject" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="ExtractGoodList" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="ExtractBadObject" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                      </results>
+                    </test-suite>
+                </results>
+              </test-suite>
+          </results>
+        </test-suite>
+        <test-suite type="Namespace" name="Memory" executed="true" result="Success" success="True" time="0.001" asserts="0" >
+          <results>
+              <test-suite type="Fixture" name="TUniqueTest" executed="True" result="Success" success="True" time="0.001" >
                 <results>
                   <test-case name="ManualReset" executed="True" result="Success" success="True" time="0.000" asserts="0" />
                   <test-case name="OutOfScopeReset" executed="True" result="Success" success="True" time="0.000" asserts="0" />
                   <test-case name="SetOtherValue" executed="True" result="Success" success="True" time="0.000" asserts="0" />
                   <test-case name="SetValueTwice" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-                </results>
-              </test-suite>
-          </results>
-        </test-suite>
-        <test-suite type="Namespace" name="Repository" executed="true" result="Success" success="True" time="1.370" asserts="0" >
-          <results>
-              <test-suite type="Fixture" name="TResponseExtractorTest" executed="True" result="Success" success="True" time="1.370" >
-                <results>
-                  <test-case name="ExtractGoodObject" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-                  <test-case name="ExtractGoodList" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-                  <test-case name="ExtractBadObject" executed="True" result="Success" success="True" time="1.371" asserts="0" />
                 </results>
               </test-suite>
           </results>

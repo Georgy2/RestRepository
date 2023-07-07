@@ -104,8 +104,17 @@
             <Form>Form1</Form>
             <FormType>dfm</FormType>
         </DCCReference>
-        <DCCReference Include="..\RestRepository\Memory.pas"/>
+        <DCCReference Include="..\RestRepository\Entity.Base.Key.pas"/>
+        <DCCReference Include="..\RestRepository\Entity.Base.pas"/>
         <DCCReference Include="..\RestRepository\Entity.Base.Version.pas"/>
+        <DCCReference Include="..\RestRepository\Memory.pas"/>
+        <DCCReference Include="..\RestRepository\Repository.Base.pas"/>
+        <DCCReference Include="..\RestRepository\Repository.Rest.Errors.pas"/>
+        <DCCReference Include="..\RestRepository\Repository.Rest.Operations.pas"/>
+        <DCCReference Include="..\RestRepository\Repository.Rest.pas"/>
+        <DCCReference Include="..\RestRepository\Repository.Rest.ResponseExtractor.pas"/>
+        <DCCReference Include="..\RestRepository\Utils.Rtti.pas"/>
+        <DCCReference Include="..\RestRepository\Utils.RttiContext.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
@@ -937,8 +946,8 @@
                 <ProjectRoot Platform="OSX64" Name="$(PROJECTNAME).app"/>
                 <ProjectRoot Platform="Win32" Name="$(PROJECTNAME)"/>
                 <ProjectRoot Platform="Android64" Name="$(PROJECTNAME)"/>
-                <ProjectRoot Platform="OSXARM64" Name="$(PROJECTNAME).app"/>
                 <ProjectRoot Platform="Android" Name="$(PROJECTNAME)"/>
+                <ProjectRoot Platform="OSXARM64" Name="$(PROJECTNAME).app"/>
                 <ProjectRoot Platform="Win64" Name="$(PROJECTNAME)"/>
                 <ProjectRoot Platform="Linux64" Name="$(PROJECTNAME)"/>
                 <ProjectRoot Platform="iOSDevice32" Name="$(PROJECTNAME).app"/>
