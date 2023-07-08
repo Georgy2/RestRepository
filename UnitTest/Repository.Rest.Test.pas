@@ -51,11 +51,13 @@ type
   [BaseApiUrl('/base_api_url')]
   [Get('/get_method', 'param1')]
   [Put('/put_method', 'param1,param2')]
+  [Post('', 'param1')]
   TSpecializedMethodsRepo = class (TRestRepository<TTestData>);
 
 implementation
 uses
   Repository.Rest.Errors,
+  Rest.Types,
   Rest.Authenticator.Basic,
   WebMock.ResponseStatus;
 
@@ -134,16 +136,33 @@ begin
     Repo.Get([123]);
   end, 'get with one parameter');
 
-  WebMock.StubRequest('PUT', '/base_api_url/get_method')
+  WebMock.StubRequest('PUT', '/base_api_url/put_method')
     .WithQueryParam('param1', '123')
     .WithQueryParam('param2', 'text')
-    .ToRespond(TWebMockResponseStatus.OK).WithBody('[]');
+    .ToRespond(TWebMockResponseStatus.OK).WithBody('{}');
   Assert.WillNotRaiseAny(procedure begin
     Repo.Put(ObjToSend, [123, 'text']);
   end, 'put with payload and two parameters');
 
-  //var lastUri := WebMock.History.Last.RequestURI;
+  WebMock.StubRequest('POST', '/base_api_url')
+    .WithQueryParam('param1', '123')
+    .ToRespond(TWebMockResponseStatus.OK).WithBody('{}');
+  Assert.WillNotRaiseAny(procedure begin
+    Repo.Post(ObjToSend, [123]);
+  end, 'post with payload and one parameter');
 
+  WebMock.StubRequest('GET', '/base_api_url/get_method').WithQueryParam('param1', '123').ToRespond(TWebMockResponseStatus.OK).WithBody('[]');
+  Assert.WillNotRaiseAny(procedure begin
+    Repo.SyncInvoke('/get_method', rmGET, nil, [123]);
+  end, 'raw get with one parameter');
+
+  WebMock.StubRequest('PUT', '/base_api_url/put_method')
+    .WithQueryParam('param1', '123')
+    .WithQueryParam('param2', 'text')
+    .ToRespond(TWebMockResponseStatus.OK).WithBody('{}');
+  Assert.WillNotRaiseAny(procedure begin
+    Repo.SyncInvoke('/put_method', rmPUT, ObjToSend, [123, 'text']);
+  end, 'raw put with payload and two parameters');
 end;
 
 initialization

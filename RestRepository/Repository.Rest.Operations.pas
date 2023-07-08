@@ -48,7 +48,8 @@ type
 
   //worker
   TRestInvoker = class
-    //raise ERest.Parameters
+    ///  <summary> Add Uri parameters to request. Skip if value is empty (TValue.IsEmpty) </summary>
+    ///  <remarks> raise ERest.Parameters </remarks>
     class procedure SetUriParams(ARestClient : TRestClient; const AUriParamNames : TArray<String>; const AUriParamValues : TArray<TValue>);
     class function AddUriSegment(const AUri : String; const AValue : TValue) : String;
   public
@@ -93,7 +94,7 @@ constructor RestOperationAttribute.Create(const APath: string; const AMethod: TR
 begin
   FPath := APath;
   FMethod := AMethod;
-  FUriParamNames := SplitString(AUriParamNames, ',');
+  FUriParamNames := SplitString(AUriParamNames.Replace(' ', ''), ',');
 end;
 function RestOperationAttribute.Invoke(const AHost : String; const ABaseApiURL: string; AAuthenticator : TCustomAuthenticator;
                   APayload : TObject; const AUriParamValues : TArray<TValue>; const AUriSegmentValue : TValue; AThreadPool : TThreadPool) : IFuture<Unique<TRESTResponse>>;
@@ -125,6 +126,9 @@ begin
 
   for var i := 0 to Length(AUriParamNames) - 1 do
   begin
+    if AUriParamValues[i].IsEmpty then
+      continue;
+
     var ValueAsString : String;
     try
       ValueAsString := AUriParamValues[i].ToString();
