@@ -1,4 +1,4 @@
-# RestRepository for Delphi
+# RestRepository for Delphi (development)
 
 A small library for working with remote REST services.
 Allows you to describe interactions in a declarative style.
