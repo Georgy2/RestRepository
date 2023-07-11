@@ -8,7 +8,8 @@ uses
   Repository.Rest.Operations,
   Rest.Client,
   WebMock,
-  DUnitX.TestFramework;
+  DUnitX.TestFramework,
+  Threading;
 
 type
   [TestFixture]
@@ -16,6 +17,7 @@ type
   private
     WebMock: TWebMock;
     Authenticator : TCustomAuthenticator;
+    ThreadPool : TThreadPool;
   public
     [Setup]
     procedure Setup();
@@ -65,18 +67,20 @@ procedure TRestRepositoryTest.Setup;
 begin
   WebMock := TWebMock.Create();
   Authenticator := THTTPBasicAuthenticator.Create('test', 'test');
+  ThreadPool := TThreadPool.Create();
 end;
 
 procedure TRestRepositoryTest.TearDown;
 begin
   WebMock.Free();
   Authenticator.Free();
+  ThreadPool.Free();
 end;
 
 procedure TRestRepositoryTest.SimpleMethods();
 begin
   var Uri := WebMock.URLFor('');
-  var Repo := TSimpleMethodsRepo.Create(Uri, Authenticator);
+  var Repo := TSimpleMethodsRepo.Create(Uri, Authenticator, ThreadPool);
   var ObjToSend := TTestData.Create();
   var ID := TValue.From<Integer>(123);
   var IdDtring := ID.ToString();
@@ -109,7 +113,7 @@ end;
 procedure TRestRepositoryTest.WithoutDefaultMethods();
 begin
   var Uri := WebMock.URLFor('');
-  var Repo := TWithoutDefaultMethodsRepo.Create(Uri, Authenticator);
+  var Repo := TWithoutDefaultMethodsRepo.Create(Uri, Authenticator, ThreadPool);
   var ObjToSend := TTestData.Create();
 
   Assert.WillRaise(procedure begin
@@ -124,7 +128,7 @@ end;
 procedure TRestRepositoryTest.SpecializedMethods();
 begin
   var Uri := WebMock.URLFor('');
-  var Repo := TSpecializedMethodsRepo.Create(Uri, Authenticator);
+  var Repo := TSpecializedMethodsRepo.Create(Uri, Authenticator, ThreadPool);
   var ObjToSend := TTestData.Create();
 
   Assert.WillRaise(procedure begin

@@ -2,7 +2,7 @@
 
 A small library for working with remote REST services.
 Allows you to describe interactions in a declarative style.
-Uses *Delphi 11*, *Delphi REST library*, *RTTI*, *generics*, and *smart records*.
+Uses *Delphi 11*, *Delphi REST library*, *RTTI*, *generics*, *THREADING*, and *smart records*.
 For testing, *DUnitX* and *Delphi WebMock* are used.
 
 ## Simple Calls
@@ -24,7 +24,8 @@ After this declaration, we can create a repository (using REST library authentic
 
     var Uri := 'http://127.0.0.1:8080/';
     var Authenticator := THTTPBasicAuthenticator.Create('name', 'password');
-    var Repo := TSimpleRepo.Create(Uri, Authenticator);
+	var ThreadPool := TThreadPool.Create();
+    var Repo := TSimpleRepo.Create(Uri, Authenticator, ThreadPool);
 
 and we can call the retrieval function
 

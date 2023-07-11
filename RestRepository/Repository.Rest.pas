@@ -19,6 +19,19 @@ uses
 type
   BaseApiUrlAttribute = class (StoredAttribute);
 
+  TFuturesHolder<T> = class
+  private
+    FFutures : TThreadList<IFuture<T>>;
+
+    function Count() : integer;
+  public
+    constructor Create();
+    destructor Destroy(); override;
+
+    procedure Add(const AFuture : IFuture<T>);
+    procedure Del(const AFuture : IFuture<T>);
+    procedure Wait();
+  end;
 
   TRestRepository<T : class> = class (TInterfacedObject, IRepository<T>, IAsyncRepository<T>)
   protected
@@ -27,7 +40,10 @@ type
     FBaseApiUrl : String;
     FSelfType : TRttiType;
 
+    //reference
     FThreadPool : TThreadPool;
+
+    FFuturesHolder : TFuturesHolder<Unique<TRestResponse>>;
   private
     //raise ERest.Attributes
     procedure ScanAttributes(AType : TRttiType);
@@ -42,7 +58,7 @@ type
     //raise ERest.Parameters
     procedure AsyncInvoke(AAttribute : RestOperationAttribute; ARequestBody : TObject; const AUriParamValues : TArray<TValue>; const AUriSegment : TValue; AResultHandler : TProc<TObject, IResponseExtractor<T>>); overload;
   public
-    constructor Create(const AHost : String; AAuthenticator : TCustomAuthenticator);
+    constructor Create(const AHost : String; AAuthenticator : TCustomAuthenticator; AThreadPool : TThreadPool);
     destructor Destroy(); override;
 
     //IRepository
@@ -74,6 +90,37 @@ uses
   Repository.Rest.Errors,
   Utils.RttiContext,
   StrUtils;
+
+function TFuturesHolder<T>.Count() : integer;
+begin
+  try
+    result := FFutures.LockList().Count;
+  finally
+    FFutures.UnlockList();
+  end;
+end;
+constructor TFuturesHolder<T>.Create();
+begin
+  FFutures := TThreadList<IFuture<T>>.Create();
+end;
+destructor TFuturesHolder<T>.Destroy();
+begin
+  Wait();
+  FFutures.Free();
+end;
+procedure TFuturesHolder<T>.Add(const AFuture : IFuture<T>);
+begin
+  FFutures.Add(AFuture);
+end;
+procedure TFuturesHolder<T>.Del(const AFuture : IFuture<T>);
+begin
+  FFutures.Remove(AFuture);
+end;
+procedure TFuturesHolder<T>.Wait();
+begin
+  while Count() > 0 do
+    Sleep(50);
+end;
 
 procedure TRestRepository<T>.ScanAttributes(AType : TRttiType);
 begin
@@ -115,19 +162,21 @@ begin
     raise ERest.Attributes.Create(ERR_NO_ATTRIBUTE_WITH_METHOD + TRttiEnumerationType.GetName(AMethod));
 end;
 
-constructor TRestRepository<T>.Create(const AHost : String; AAuthenticator : TCustomAuthenticator);
+constructor TRestRepository<T>.Create(const AHost : String; AAuthenticator : TCustomAuthenticator; AThreadPool : TThreadPool);
 begin
   FHost := AHost;
   FAuthenticator := AAuthenticator;
 
-  FThreadPool := TThreadPool.Create();
+  FThreadPool := AThreadPool;
+  FFuturesHolder := TFuturesHolder<Unique<TRestResponse>>.Create();
 
   FSelfType := GRttiCtx.GetType(self.ClassInfo);
   ScanAttributes(FSelfType);
 end;
 destructor TRestRepository<T>.Destroy();
 begin
-  FThreadPool.Free();
+  FFuturesHolder.Wait();
+  FFuturesHolder.Free();
 end;
 
 function TRestRepository<T>.SyncInvoke(AAttribute : RestOperationAttribute; ARequestBody : TObject; const AUriParamValues : TArray<TValue>; const AUriSegment : TValue) : IResponseExtractor<T>;
@@ -150,6 +199,7 @@ end;
 procedure TRestRepository<T>.AsyncInvoke(AAttribute : RestOperationAttribute; ARequestBody : TObject; const AUriParamValues : TArray<TValue>; const AUriSegment : TValue; AResultHandler : TProc<TObject, IResponseExtractor<T>>);
 begin
   var Future := AAttribute.Invoke(FHost, FBaseApiUrl, FAuthenticator, ARequestBody, AUriParamValues, AUriSegment, FThreadPool);
+  FFuturesHolder.Add(Future);
 
   var ThreadProc : TProc := procedure()
   begin
@@ -166,6 +216,7 @@ begin
       AResultHandler(Error.Get(), ResponseExtractor);
     end));
 
+    FFuturesHolder.Del(Future);
   end;
 
   var Task := TTask.Create(ThreadProc, FThreadPool);
